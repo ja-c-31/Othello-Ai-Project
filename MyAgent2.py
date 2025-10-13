@@ -2,31 +2,50 @@ import random
 from Othello import *
 
 class Player(BasePlayer):
-    def __init__(self, timelimit):
-        BasePlayer.__init__(self, timelimit)
+    def __init__(self, timeLimit):
+        BasePlayer.__init__(self, timeLimit)
+        self.maxDepth = 4
 
     def findMove(self, state):
-        actions = state.actions()
+        bestMove = None
+        bestValue = float('-inf')
 
-        if state._turn % 2 == 0:
-            best = -10000
-            for a in actions:
-                result = state.result(a)
-                v = self.heuristic(result)
-                if v > best:
-                    best = v
-                    bestMove = a
-        else:
-            best = 10000
-            for a in actions:
-                result = state.result(a)
-                v = self.heuristic(result)
-                if v < best:
-                    best = v
-                    bestMove = a
+        # Loop through all possible moves
+        for move in state.actions():
+            nextState = state.result(move)
+            value = self.alphabeta(nextState, self.maxDepth - 1,
+                                   float('-inf'), float('inf'), False)
+            if value > bestValue:
+                bestValue = value
+                bestMove = move
+
+        print(f"AI chooses move: {state.moveToStr(bestMove)} (value: {bestValue})")
         self.setMove(bestMove)
-        print('\tBest value', best, state.moveToStr(bestMove))
 
+    def alphabeta(self, state, depth, alpha, beta, maximizingPlayer):
+        
+        # Stop if depth limit reached or game is over
+        if depth == 0 or state.gameOver():
+            return self.heuristic(state)
+
+        if maximizingPlayer:
+            value = float('-inf')
+            for move in state.actions():
+                nextState = state.result(move)
+                value = max(value, self.alphabeta(nextState, depth-1, alpha, beta, False))
+                alpha = max(alpha, value)
+                if alpha >= beta:
+                    break  # Beta cut-off
+            return value
+        else:
+            value = float('inf')
+            for move in state.actions():
+                nextState = state.result(move)
+                value = min(value, self.alphabeta(nextState, depth-1, alpha, beta, True))
+                beta = min(beta, value)
+                if alpha >= beta:
+                    break  # Alpha cut-off
+            return value
 
     def heuristic(self, state):
-        return state.score()
+       return state.score()
