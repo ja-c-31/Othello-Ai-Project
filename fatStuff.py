@@ -1,10 +1,6 @@
-import random
 from Othello import *
 
 class Player(BasePlayer):
-    def __init__(self, timelimit):
-        BasePlayer.__init__(self, timelimit)
-
     def findMove(self, state):
         actions = state.actions()
 
